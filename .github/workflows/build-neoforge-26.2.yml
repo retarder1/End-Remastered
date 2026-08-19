@@ -38,3 +38,33 @@ jobs:
           name: endrem-neoforge-26.2
           path: neoforge/build/libs/*.jar
           if-no-files-found: error
+
+      - name: Prepare direct JAR artifact
+        shell: bash
+        run: |
+          JAR="$(find neoforge/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*sources*' ! -name '*javadoc*' -print -quit)"
+          test -n "$JAR"
+          mkdir -p raw-jar
+          (cd raw-jar && jar xf "../$JAR")
+          test -f raw-jar/META-INF/MANIFEST.MF
+          test -f raw-jar/META-INF/neoforge.mods.toml
+
+      - name: Upload direct JAR structure
+        uses: actions/upload-artifact@v4
+        with:
+          name: endrem-neoforge-26.2-rawjar-nf59
+          path: raw-jar/
+          if-no-files-found: error
+
+      - name: Prepare source snapshot
+        shell: bash
+        run: |
+          mkdir -p source-snapshot
+          git archive HEAD | tar -x -C source-snapshot
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: endrem-neoforge-26.2-source-nf59
+          path: source-snapshot/
+          if-no-files-found: error
